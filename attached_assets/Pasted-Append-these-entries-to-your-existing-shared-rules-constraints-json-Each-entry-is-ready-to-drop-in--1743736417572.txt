@@ -1,0 +1,107 @@
+Append these entries to your existing /shared/rules/constraints.json
+Each entry is ready to drop in — just continue the JSON array.
+
+🧠 10 More Techniques
+json
+Copy
+Edit
+{
+  "technique": "Ridge Regression",
+  "internal_code": "ridge_regression",
+  "category": "Regression",
+  "min_numeric_features": 2,
+  "max_missing": 10,
+  "requires_encoding": true,
+  "time_series_required": false,
+  "output_types": ["stats", "chart", "text"]
+},
+{
+  "technique": "Lasso Regression",
+  "internal_code": "lasso_regression",
+  "category": "Regression",
+  "min_numeric_features": 2,
+  "max_missing": 10,
+  "requires_encoding": true,
+  "time_series_required": false,
+  "output_types": ["stats", "chart", "text"]
+},
+{
+  "technique": "Support Vector Classifier",
+  "internal_code": "svc",
+  "category": "Classification",
+  "min_numeric_features": 2,
+  "max_missing": 5,
+  "requires_encoding": true,
+  "time_series_required": false,
+  "output_types": ["stats", "chart", "text"]
+},
+{
+  "technique": "Support Vector Regressor",
+  "internal_code": "svr",
+  "category": "Regression",
+  "min_numeric_features": 2,
+  "max_missing": 5,
+  "requires_encoding": true,
+  "time_series_required": false,
+  "output_types": ["stats", "chart", "text"]
+},
+{
+  "technique": "Hierarchical Clustering",
+  "internal_code": "hierarchical_clustering",
+  "category": "Clustering",
+  "min_numeric_features": 2,
+  "max_missing": 0,
+  "requires_encoding": false,
+  "time_series_required": false,
+  "output_types": ["chart", "text"]
+},
+{
+  "technique": "Gaussian Naive Bayes",
+  "internal_code": "gaussian_nb",
+  "category": "Classification",
+  "min_numeric_features": 1,
+  "max_missing": 5,
+  "requires_encoding": true,
+  "time_series_required": false,
+  "output_types": ["stats", "text"]
+},
+{
+  "technique": "Gradient Boosting Classifier",
+  "internal_code": "gradient_boosting_classifier",
+  "category": "Classification",
+  "min_numeric_features": 2,
+  "max_missing": 10,
+  "requires_encoding": false,
+  "time_series_required": false,
+  "output_types": ["chart", "stats", "text"]
+},
+{
+  "technique": "Gradient Boosting Regressor",
+  "internal_code": "gradient_boosting_regressor",
+  "category": "Regression",
+  "min_numeric_features": 2,
+  "max_missing": 10,
+  "requires_encoding": false,
+  "time_series_required": false,
+  "output_types": ["chart", "stats", "text"]
+},
+{
+  "technique": "Prophet Forecasting",
+  "internal_code": "prophet_forecasting",
+  "category": "Time Series Forecasting",
+  "min_numeric_features": 1,
+  "max_missing": 10,
+  "requires_encoding": false,
+  "time_series_required": true,
+  "output_types": ["chart", "stats", "text"]
+},
+{
+  "technique": "Kernel PCA",
+  "internal_code": "kernel_pca",
+  "category": "Feature Engineering",
+  "min_numeric_features": 3,
+  "max_missing": 5,
+  "requires_encoding": false,
+  "time_series_required": false,
+  "output_types": ["chart", "text"]
+}

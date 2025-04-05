@@ -1,0 +1,159 @@
+Add These Files to /backend/logic/
+📄 ridge_regression.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.linear_model import Ridge
+from sklearn.metrics import r2_score, mean_squared_error
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    model = Ridge(alpha=params.get("alpha", 1.0))
+    model.fit(X, y)
+    preds = model.predict(X)
+
+    return {
+        "charts": {
+            "predicted_vs_actual": list(zip(preds.tolist(), y.tolist()))
+        },
+        "stats": {
+            "r2": round(r2_score(y, preds), 4),
+            "mse": round(mean_squared_error(y, preds), 4)
+        },
+        "tables": {
+            "coefficients": dict(zip(X.columns, model.coef_.tolist()))
+        },
+        "explanation": "Ridge Regression adds L2 regularization to penalize large coefficients and reduce overfitting."
+    }
+📄 svc.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, accuracy_score
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+    model = SVC(probability=True)
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+
+    return {
+        "charts": {},
+        "stats": {
+            "accuracy": round(accuracy_score(y_test, preds), 4)
+        },
+        "tables": {
+            "classification_report": classification_report(y_test, preds, output_dict=True)
+        },
+        "explanation": "Support Vector Classification separates classes using a hyperplane with maximum margin, effective for high-dimensional spaces."
+    }
+📄 hierarchical_clustering.py
+python
+Copy
+Edit
+import pandas as pd
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import pdist
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    method = params.get("method", "ward")
+    Z = linkage(X, method=method)
+    clusters = fcluster(Z, t=3, criterion='maxclust')
+
+    return {
+        "charts": {
+            "dendrogram_linkage_matrix": Z.tolist()
+        },
+        "stats": {
+            "n_clusters": len(set(clusters))
+        },
+        "tables": {
+            "cluster_assignments": [{"Index": i, "Cluster": int(c)} for i, c in enumerate(clusters)]
+        },
+        "explanation": "Hierarchical Clustering groups observations into a nested series of partitions using agglomerative linkage methods."
+    }
+📄 gaussian_nb.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+    model = GaussianNB()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+
+    return {
+        "charts": {},
+        "stats": {
+            "accuracy": round(accuracy_score(y_test, preds), 4)
+        },
+        "tables": {
+            "classification_report": classification_report(y_test, preds, output_dict=True)
+        },
+        "explanation": "Gaussian Naive Bayes is a probabilistic classifier that assumes normal distribution of input features and applies Bayes' theorem."
+    }
+🔁 Update /backend/api/run_model.py Logic Map
+Update the logic_map dictionary like so:
+
+python
+Copy
+Edit
+from fastapi import APIRouter
+from ..upload import session_data
+from ..logic import (
+    kmeans,
+    isolation_forest,
+    linear_regression,
+    random_forest_classifier,
+    dbscan,
+    ridge_regression,
+    svc,
+    hierarchical_clustering,
+    gaussian_nb
+)
+
+router = APIRouter()
+
+@router.post("/{technique}")
+def run_selected_technique(technique: str):
+    df = session_data.get("df")
+    if not df:
+        return {"error": "No uploaded data"}
+
+    logic_map = {
+        "kmeans": kmeans.run,
+        "isolation_forest": isolation_forest.run,
+        "linear_regression": linear_regression.run,
+        "random_forest_classifier": random_forest_classifier.run,
+        "dbscan": dbscan.run,
+        "ridge_regression": ridge_regression.run,
+        "svc": svc.run,
+        "hierarchical_clustering": hierarchical_clustering.run,
+        "gaussian_nb": gaussian_nb.run
+    }
+
+    if technique not in logic_map:
+        return {"error": "Unsupported technique"}
+
+    return logic_map[technique](df)

@@ -1,0 +1,75 @@
+# Define file paths for the three page components
+upload_page_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/pages/upload-page.tsx"
+insights_page_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/pages/insights-page.tsx"
+results_page_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/pages/results-page.tsx"
+
+# Page contents
+upload_page_code = """import React, { useState } from 'react';
+import { useUpload } from '../contexts/upload-context';
+
+const UploadPage = () => {
+  const { uploadFile } = useUpload();
+  const [loading, setLoading] = useState(false);
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLoading(true);
+      await uploadFile(file);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-8 space-y-4">
+      <h1 className="text-2xl font-bold">Upload your dataset</h1>
+      <input type="file" onChange={handleUpload} />
+      {loading && <div className="mt-4">Uploading and analyzing file...</div>}
+    </div>
+  );
+};
+
+export default UploadPage;
+"""
+
+insights_page_code = """import React from 'react';
+import InsightsPortfolio from '../components/insights/InsightsPortfolio';
+
+const InsightsPage = () => {
+  return (
+    <div className="p-8 space-y-4">
+      <h1 className="text-2xl font-bold mb-4">Available Modeling Techniques</h1>
+      <InsightsPortfolio />
+    </div>
+  );
+};
+
+export default InsightsPage;
+"""
+
+results_page_code = """import React from 'react';
+import ResultRenderer from '../components/results/ResultRenderer';
+
+const ResultsPage = () => {
+  return (
+    <div className="p-8 space-y-4">
+      <h1 className="text-2xl font-bold mb-4">Model Results</h1>
+      <ResultRenderer />
+    </div>
+  );
+};
+
+export default ResultsPage;
+"""
+
+# Write files
+with open(upload_page_path, "w") as f:
+    f.write(upload_page_code)
+
+with open(insights_page_path, "w") as f:
+    f.write(insights_page_code)
+
+with open(results_page_path, "w") as f:
+    f.write(results_page_code)
+
+upload_page_path, insights_page_path, results_page_path

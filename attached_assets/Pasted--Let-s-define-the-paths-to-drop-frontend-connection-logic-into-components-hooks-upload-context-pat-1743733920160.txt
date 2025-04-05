@@ -1,0 +1,132 @@
+# Let's define the paths to drop frontend connection logic into components/hooks
+upload_context_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/contexts/upload-context.tsx"
+insights_component_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/components/insights/InsightsPortfolio.tsx"
+results_component_path = "/mnt/data/BumpDataInterface/BumpDataInterface/client/src/components/results/ResultRenderer.tsx"
+
+# Upload context: handles file upload and schema storage
+upload_context_code = """import React, { createContext, useContext, useState } from 'react';
+import axios from 'axios';
+
+const UploadContext = createContext(null);
+
+export const UploadProvider = ({ children }) => {
+  const [schema, setSchema] = useState(null);
+  const [techniques, setTechniques] = useState([]);
+  const [result, setResult] = useState(null);
+
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await axios.post('/upload/', formData);
+    setSchema(res.data.schema);
+
+    const techRes = await axios.get('/constraints/');
+    setTechniques(techRes.data.valid_techniques);
+  };
+
+  const runTechnique = async (code) => {
+    const res = await axios.post(`/run/${code}`);
+    setResult(res.data);
+  };
+
+  return (
+    <UploadContext.Provider value={{ schema, techniques, result, uploadFile, runTechnique }}>
+      {children}
+    </UploadContext.Provider>
+  );
+};
+
+export const useUpload = () => useContext(UploadContext);
+"""
+
+# Update InsightsPortfolio to use context and call run function
+insights_component_code = """import React from 'react';
+import { useUpload } from '../../contexts/upload-context';
+
+const TechniqueCard = ({ name, tags, onSelect }) => (
+  <div className="border rounded p-4 shadow-sm hover:shadow-md transition">
+    <h3 className="font-bold text-lg mb-2">{name}</h3>
+    <div className="flex flex-wrap gap-2 mb-2">
+      {tags.map((tag, i) => (
+        <span key={i} className="bg-purple-100 text-purple-800 px-2 py-1 text-xs rounded">{tag}</span>
+      ))}
+    </div>
+    <button onClick={onSelect} className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">
+      Render Insight
+    </button>
+  </div>
+);
+
+const InsightsPortfolio = () => {
+  const { techniques, runTechnique } = useUpload();
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {techniques.map((tech, i) => (
+        <TechniqueCard
+          key={i}
+          name={tech.name}
+          tags={tech.tags || []}
+          onSelect={() => runTechnique(tech.code)}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default InsightsPortfolio;
+"""
+
+# Update ResultRenderer to consume result from context
+results_component_code = """import React from 'react';
+import { useUpload } from '../../contexts/upload-context';
+
+const ResultRenderer = () => {
+  const { result } = useUpload();
+  if (!result) return <div>No results to display.</div>;
+
+  return (
+    <div className="space-y-6">
+      {result.charts && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Charts</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.charts, null, 2)}</pre>
+        </div>
+      )}
+      {result.stats && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Statistics</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.stats, null, 2)}</pre>
+        </div>
+      )}
+      {result.tables && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Tables</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.tables, null, 2)}</pre>
+        </div>
+      )}
+      {result.explanation && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Explanation</h2>
+          <p className="bg-white p-2 border-l-4 border-purple-500 rounded">{result.explanation}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ResultRenderer;
+"""
+
+# Save the files
+with open(upload_context_path, "w") as f:
+    f.write(upload_context_code)
+
+with open(insights_component_path, "w") as f:
+    f.write(insights_component_code)
+
+with open(results_component_path, "w") as f:
+    f.write(results_component_code)
+
+upload_context_path, insights_component_path, results_component_path

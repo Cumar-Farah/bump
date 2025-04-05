@@ -1,0 +1,86 @@
+ finish this loop. Here come the final core components that complete the brain and behavior of BumpData.
+
+📄 shared/rules/output_map.json
+Paste this file into your project at:
+/shared/rules/output_map.json
+
+json
+Copy
+Edit
+{
+  "kmeans": ["chart", "stats", "table", "text"],
+  "isolation_forest": ["chart", "stats", "table", "text"],
+  "linear_regression": ["chart", "stats", "table", "text"],
+  "random_forest_classifier": ["chart", "stats", "table", "text"],
+  "dbscan": ["chart", "stats", "table", "text"]
+}
+This file powers dynamic rendering in ResultRenderer.tsx if you want to show/hide based on what's available.
+
+🧠 Schema Inference & Constraint Logic (drop in backend/engine/schema_infer.py)
+python
+Copy
+Edit
+import pandas as pd
+
+def infer_schema(df: pd.DataFrame):
+    return {
+        "columns": list(df.columns),
+        "types": df.dtypes.astype(str).to_dict(),
+        "missing_percent": df.isnull().mean().round(2).to_dict(),
+        "num_features": len(df.select_dtypes(include='number').columns),
+        "has_time_column": any("date" in col.lower() or "time" in col.lower() for col in df.columns)
+    }
+🔁 Use schema_infer.py in upload.py (replace file):
+python
+Copy
+Edit
+from fastapi import APIRouter, File, UploadFile
+import pandas as pd
+from typing import Dict
+from ..engine.schema_infer import infer_schema
+
+router = APIRouter()
+session_data: Dict[str, any] = {}
+
+@router.post("/")
+async def upload_file(file: UploadFile = File(...)):
+    df = pd.read_csv(file.file) if file.filename.endswith('.csv') else pd.read_excel(file.file)
+    session_data["df"] = df
+    schema = infer_schema(df)
+    session_data["schema"] = schema
+    return {"message": "File uploaded", "schema": schema}
+🧠 Optional: Add Redirect Navigation After Upload
+Update your UploadPage.tsx to auto-redirect to /insights after upload:
+
+tsx
+Copy
+Edit
+import React, { useState } from 'react';
+import { useUpload } from '../contexts/upload-context';
+import { useNavigate } from 'react-router-dom';
+
+const UploadPage = () => {
+  const { uploadFile } = useUpload();
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLoading(true);
+      await uploadFile(file);
+      setLoading(false);
+      navigate("/insights");
+    }
+  };
+
+  return (
+    <div className="p-8 space-y-4">
+      <h1 className="text-2xl font-bold">Upload your dataset</h1>
+      <input type="file" onChange={handleUpload} />
+      {loading && <div className="mt-4">Uploading and analyzing file...</div>}
+    </div>
+  );
+};
+
+export default UploadPage;

@@ -1,0 +1,171 @@
+ere are the final 6 model logic files to match the techniques we added to constraints.json.
+
+📄 lasso_regression.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.linear_model import Lasso
+from sklearn.metrics import r2_score, mean_squared_error
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    model = Lasso(alpha=params.get("alpha", 1.0))
+    model.fit(X, y)
+    preds = model.predict(X)
+
+    return {
+        "charts": {
+            "predicted_vs_actual": list(zip(preds.tolist(), y.tolist()))
+        },
+        "stats": {
+            "r2": round(r2_score(y, preds), 4),
+            "mse": round(mean_squared_error(y, preds), 4)
+        },
+        "tables": {
+            "coefficients": dict(zip(X.columns, model.coef_.tolist()))
+        },
+        "explanation": "Lasso Regression applies L1 regularization to drive some feature weights to zero, helping with feature selection."
+    }
+📄 svr.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.svm import SVR
+from sklearn.metrics import mean_squared_error, r2_score
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    model = SVR()
+    model.fit(X, y)
+    preds = model.predict(X)
+
+    return {
+        "charts": {
+            "predicted_vs_actual": list(zip(preds.tolist(), y.tolist()))
+        },
+        "stats": {
+            "r2": round(r2_score(y, preds), 4),
+            "mse": round(mean_squared_error(y, preds), 4)
+        },
+        "tables": {},
+        "explanation": "Support Vector Regression finds a hyperplane in high-dimensional space to fit the data within a margin of tolerance."
+    }
+📄 gradient_boosting_classifier.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    model = GradientBoostingClassifier()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+
+    return {
+        "charts": {
+            "feature_importances": dict(zip(X.columns, model.feature_importances_.tolist()))
+        },
+        "stats": {
+            "accuracy": round(accuracy_score(y_test, preds), 4)
+        },
+        "tables": {
+            "classification_report": classification_report(y_test, preds, output_dict=True)
+        },
+        "explanation": "Gradient Boosting builds an ensemble of weak learners by minimizing loss function through gradient descent."
+    }
+📄 gradient_boosting_regressor.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    model = GradientBoostingRegressor()
+    model.fit(X, y)
+    preds = model.predict(X)
+
+    return {
+        "charts": {
+            "predicted_vs_actual": list(zip(preds.tolist(), y.tolist()))
+        },
+        "stats": {
+            "r2": round(r2_score(y, preds), 4),
+            "mse": round(mean_squared_error(y, preds), 4)
+        },
+        "tables": {
+            "feature_importances": dict(zip(X.columns, model.feature_importances_.tolist()))
+        },
+        "explanation": "Gradient Boosting Regressor builds an ensemble of models sequentially, reducing residual errors using decision trees."
+    }
+📄 prophet_forecasting.py
+python
+Copy
+Edit
+import pandas as pd
+from prophet import Prophet
+
+def run(df: pd.DataFrame, params: dict = None):
+    df = df.rename(columns={df.columns[0]: "ds", df.columns[1]: "y"})
+    df = df[["ds", "y"]].dropna()
+
+    model = Prophet()
+    model.fit(df)
+    future = model.make_future_dataframe(periods=30)
+    forecast = model.predict(future)
+
+    return {
+        "charts": {
+            "forecast_values": forecast[["ds", "yhat"]].tail(30).to_dict(orient="records")
+        },
+        "stats": {
+            "total_forecasted_days": 30
+        },
+        "tables": {
+            "last_forecast": forecast.tail(10).to_dict(orient="records")
+        },
+        "explanation": "Prophet is a time-series forecasting model by Meta that captures trend, seasonality, and holiday effects with intuitive parameters."
+    }
+🧪 Note: Prophet must be installed with pip install prophet (or cmdstanpy as a dependency)
+
+📄 kernel_pca.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.decomposition import KernelPCA
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    kpca = KernelPCA(n_components=2, kernel="rbf")
+    X_kpca = kpca.fit_transform(X)
+
+    return {
+        "charts": {
+            "kpca_projection": X_kpca.tolist()
+        },
+        "stats": {},
+        "tables": {},
+        "explanation": "Kernel PCA is an extension of PCA that enables non-linear dimensionality reduction using kernel tricks."
+    }

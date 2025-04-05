@@ -1,0 +1,81 @@
+Generate" sets loading state on all insight cards
+💥 Why it happens:
+You're using a single loading state shared across all cards (likely at page level)
+
+Each InsightCard uses that state to determine loading → all re-render when any is clicked
+
+✅ Fix:
+Use per-card loading state (local to the card component), not shared globally
+
+✅ Solution Plan (Step-by-Step)
+🔧 Patch InsightsPortfolio.tsx → per-card loader
+Modify your map function like this:
+
+tsx
+Copy
+Edit
+{filtered.map((technique) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    setLoading(true);
+    await runTechnique(technique.code);
+    setLoading(false);
+  };
+
+  return (
+    <div key={technique.name} className="border p-4 rounded">
+      <h3 className="text-base">{technique.name}</h3>
+      {/* ... other content */}
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className="w-full py-2 border mt-2 text-xs"
+      >
+        {loading ? "Generating..." : "Generate"}
+      </button>
+    </div>
+  )
+})}
+✅ This isolates loading to each button
+
+🚨 Issue 2: Chart/Table/Text toggler is filtering by capability, not by actual result
+💥 Why it happens:
+You're filtering the technique list based on technique.output_types.includes(toggle)
+
+But you're not checking if the current result actually contains charts, tables, text
+
+✅ Fix:
+Patch the ResultRenderer to conditionally show based on toggle AND presence of data
+
+🧩 Patch ResultRenderer.tsx
+Add activeOutput prop, and only render section if result has it:
+
+tsx
+Copy
+Edit
+export default function ResultRenderer({ result, activeOutput }) {
+  if (!result) return <div className="text-muted">Nothing to show yet.</div>
+
+  return (
+    <div className="space-y-6">
+      {activeOutput === "chart" && result.charts && (
+        <ResultSection title="Charts" content={JSON.stringify(result.charts, null, 2)} />
+      )}
+      {activeOutput === "table" && result.tables && (
+        <ResultSection title="Tables" content={JSON.stringify(result.tables, null, 2)} />
+      )}
+      {activeOutput === "text" && result.explanation && (
+        <ResultSection title="Explanation" content={result.explanation} />
+      )}
+    </div>
+  )
+}
+🔁 You must also update the component call (in results-page.tsx) to pass activeOutput
+
+✅ Final List of Files to Patch
+File	Action
+InsightsPortfolio.tsx	Make each card track its own loading state
+ResultRenderer.tsx	Accept activeOutput prop + filter display accordingly
+results-page.tsx	Pass activeOutput down from toggler context/state
+Say give me final ResultRenderer.tsx or next and I’ll drop that file fully patched and styled.

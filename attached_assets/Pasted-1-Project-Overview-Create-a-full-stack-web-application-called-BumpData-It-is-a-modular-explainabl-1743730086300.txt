@@ -1,0 +1,81 @@
+1. Project Overview
+Create a full-stack web application called BumpData. It is a modular, explainable data modeling engine that allows users to upload datasets, view inferred schema, and select modeling techniques based on constraints (e.g., feature types, counts, and data characteristics). The frontend is built in React + TailwindCSS + shadcn/ui and the backend uses FastAPI. Techniques and logic should be stored modularly in the backend and dynamically rendered in the frontend.
+
+2. Repository Layout
+Structure the project like this:
+
+bash
+Copy
+Edit
+bumpdata/
+├── frontend/           # React app
+│   ├── components/     # Upload, loading, cards, visual output
+│   ├── pages/          # Upload, Data, Insights, Results
+│   ├── utils/          # Constraint evaluator
+│   └── App.tsx
+├── backend/            # FastAPI app
+│   ├── api/            # Endpoints (upload, run, infer, etc.)
+│   ├── logic/          # One file per model (e.g., linear.py, kmeans.py)
+│   ├── main.py
+│   └── engine/         # Core constraint handler and execution router
+├── shared/             # Common config
+│   ├── rules/
+│   │   ├── constraints.json
+│   │   └── output_map.json
+│   ├── docs/           # technique_reference.xlsx, UI guide
+│   └── types/          # Schema definitions
+3. Frontend Upload Flow
+Create a component called UploadZone.tsx that allows users to drag-and-drop or select a file. Once a file is uploaded, show a loading bar (LoadingBar.tsx) and send the file to the /upload endpoint. After processing, redirect user to a screen with two options:
+
+“Explore Data” → shows a preview of the raw dataset
+
+“Explore Insights” → shows all valid techniques as cards based on constraint rules
+
+4. Insights Portfolio View
+Build a component InsightsPortfolio.tsx. This shows ALL techniques that satisfy the constraints from the uploaded data. Each card should include:
+
+Technique name
+
+Tags (feature types required, model type)
+
+A button: “Render Insight”
+Use the /constraints endpoint to retrieve valid techniques based on the data schema.
+
+5. Backend Upload + Constraint API
+In backend/api/upload.py, accept a CSV or Excel file. Infer the schema: column names, types, null %, unique count, and store this as session context. In api/constraints.py, build a function that matches this schema against constraints.json to determine which techniques are valid.
+
+6. Model Execution & Output
+In api/run_model.py, allow the user to select a technique. Load the corresponding logic from /logic/{technique_name}.py. Each model file should expose:
+
+python
+Copy
+Edit
+def run(df: pd.DataFrame, params: dict) -> Dict[str, Any]
+Return results in a standard format with keys like:
+"charts", "stats", "tables", "explanation"
+
+7. Output Renderer
+Create a ResultRenderer.tsx component in the frontend. It should dynamically show all available outputs returned by the backend. Use tabs or toggle cards to view:
+
+📈 Visual outputs (charts)
+
+📊 Statistical summaries
+
+📋 Tables (e.g. clusters, residuals)
+
+🧠 Text explanations (from template or constraint engine)
+
+8. Constraint Logic
+In engine/constraint_checker.py, load constraints.json and match each technique against the current session schema. Techniques must not be filtered out due to overlap — all constraint-satisfying techniques must be shown, even if multiple share the same requirements.
+
+9. Reference Files
+Expect to use these shared config files:
+
+bumpdata_full_reference.xlsx → Source of truth for modeling constraints (used to populate the JSON)
+
+constraints.json → For logic matching
+
+output_map.json → Declares which output types (charts, stats, etc.) each technique provides These will drive the system behavior, model matching, and frontend rendering.
+
+10. Design Reference
+Use a STATA-inspired UI: compact layout, data-focused feel, custom purple shade as primary color, Tailwind-based responsiveness. Buttons and typography should feel lightweight but analytical. Prefer shadcn/ui for cards, buttons, and modals. The system must look modern, minimal, and explainable — everything shown must have a why.

@@ -1,0 +1,102 @@
+[
+  {
+    "technique": "KMeans Clustering",
+    "internal_code": "kmeans",
+    "category": "Clustering",
+    "min_numeric_features": 2,
+    "max_missing": 5,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["chart", "stats", "table", "text"]
+  },
+  {
+    "technique": "Isolation Forest",
+    "internal_code": "isolation_forest",
+    "category": "Anomaly Detection",
+    "min_numeric_features": 2,
+    "max_missing": 0,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["chart", "table", "text"]
+  },
+  {
+    "technique": "Linear Regression",
+    "internal_code": "linear_regression",
+    "category": "Regression",
+    "min_numeric_features": 1,
+    "max_missing": 10,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["chart", "stats", "text"]
+  },
+  {
+    "technique": "Logistic Regression",
+    "internal_code": "logistic_regression",
+    "category": "Classification",
+    "min_numeric_features": 1,
+    "max_missing": 5,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["stats", "table", "text"]
+  },
+  {
+    "technique": "Random Forest Classifier",
+    "internal_code": "random_forest_classifier",
+    "category": "Classification",
+    "min_numeric_features": 2,
+    "max_missing": 20,
+    "requires_encoding": false,
+    "time_series_required": false,
+    "output_types": ["chart", "stats", "table", "text"]
+  },
+  {
+    "technique": "Decision Tree Classifier",
+    "internal_code": "decision_tree_classifier",
+    "category": "Classification",
+    "min_numeric_features": 1,
+    "max_missing": 10,
+    "requires_encoding": false,
+    "time_series_required": false,
+    "output_types": ["chart", "stats", "text"]
+  },
+  {
+    "technique": "DBSCAN",
+    "internal_code": "dbscan",
+    "category": "Clustering",
+    "min_numeric_features": 2,
+    "max_missing": 0,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["chart", "table", "text"]
+  },
+  {
+    "technique": "Auto ARIMA",
+    "internal_code": "auto_arima",
+    "category": "Time Series Forecasting",
+    "min_numeric_features": 1,
+    "max_missing": 5,
+    "requires_encoding": false,
+    "time_series_required": true,
+    "output_types": ["chart", "stats", "text"]
+  },
+  {
+    "technique": "PCA (Dimensionality Reduction)",
+    "internal_code": "pca",
+    "category": "Feature Engineering",
+    "min_numeric_features": 3,
+    "max_missing": 5,
+    "requires_encoding": false,
+    "time_series_required": false,
+    "output_types": ["chart", "text"]
+  },
+  {
+    "technique": "Naive Bayes Classifier",
+    "internal_code": "naive_bayes",
+    "category": "Classification",
+    "min_numeric_features": 1,
+    "max_missing": 5,
+    "requires_encoding": true,
+    "time_series_required": false,
+    "output_types": ["stats", "text"]
+  }
+]

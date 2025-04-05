@@ -1,0 +1,133 @@
+import json
+
+# Sample content for constraints.json
+constraints_json = [
+    {
+        "technique": "KMeans",
+        "internal_code": "kmeans",
+        "category": "Clustering",
+        "min_numeric_features": 2,
+        "max_missing": 5,
+        "requires_encoding": True,
+        "time_series_required": False,
+        "output_types": ["chart", "stats", "table", "text"]
+    }
+]
+
+# Create shared rules folder and write constraints.json
+shared_rules_path = "/mnt/data/BumpDataInterface/BumpDataInterface/shared/rules"
+os.makedirs(shared_rules_path, exist_ok=True)
+
+with open(os.path.join(shared_rules_path, "constraints.json"), "w") as f:
+    json.dump(constraints_json, f, indent=2)
+
+# Create upload handler (schema parser)
+upload_code = """from fastapi import APIRouter, File, UploadFile
+import pandas as pd
+from typing import Dict
+
+router = APIRouter()
+session_data: Dict[str, any] = {}  # simple session store
+
+@router.post("/")
+async def upload_file(file: UploadFile = File(...)):
+    contents = await file.read()
+    df = pd.read_csv(file.file) if file.filename.endswith('.csv') else pd.read_excel(file.file)
+
+    schema = {
+        "columns": list(df.columns),
+        "types": df.dtypes.astype(str).to_dict(),
+        "missing_percent": df.isnull().mean().round(2).to_dict(),
+        "num_features": len(df.select_dtypes(include='number').columns)
+    }
+
+    session_data["df"] = df
+    session_data["schema"] = schema
+
+    return {"message": "File uploaded", "schema": schema}
+"""
+
+# Create constraint evaluator
+constraints_code = """from fastapi import APIRouter
+import json
+from ..upload import session_data
+
+router = APIRouter()
+
+@router.get("/")
+def get_valid_techniques():
+    if "schema" not in session_data:
+        return {"error": "No data uploaded"}
+
+    schema = session_data["schema"]
+    num_numeric = schema["num_features"]
+    valid = []
+
+    with open("shared/rules/constraints.json", "r") as f:
+        rules = json.load(f)
+
+    for rule in rules:
+        if num_numeric >= rule["min_numeric_features"]:
+            valid.append({
+                "name": rule["technique"],
+                "code": rule["internal_code"],
+                "tags": [rule["category"]],
+                "output_types": rule["output_types"]
+            })
+
+    return {"valid_techniques": valid}
+"""
+
+# Save files
+with open("/mnt/data/BumpDataInterface/BumpDataInterface/backend/api/upload.py", "w") as f:
+    f.write(upload_code)
+
+with open("/mnt/data/BumpDataInterface/BumpDataInterface/backend/api/constraints.py", "w") as f:
+    f.write(constraints_code)
+
+# Drop logic file for KMeans
+kmeans_code = """import pandas as pd
+from sklearn.cluster import KMeans
+
+def run(df: pd.DataFrame, params: dict = None):
+    model = KMeans(n_clusters=params.get("n_clusters", 3))
+    X = df.select_dtypes(include='number').dropna()
+    model.fit(X)
+
+    return {
+        "charts": {
+            "centroids": model.cluster_centers_.tolist()
+        },
+        "stats": {
+            "inertia": model.inertia_,
+            "n_iter": model.n_iter_
+        },
+        "tables": {
+            "labels": model.labels_.tolist()
+        },
+        "explanation": "KMeans clustered your data based on numeric features using Euclidean distance."
+    }
+"""
+
+with open("/mnt/data/BumpDataInterface/BumpDataInterface/backend/logic/kmeans.py", "w") as f:
+    f.write(kmeans_code)
+
+# Create run_model API that loads and executes KMeans
+run_model_code = """from fastapi import APIRouter
+from ..upload import session_data
+from ..logic import kmeans
+
+router = APIRouter()
+
+@router.post("/{technique}")
+def run_selected_technique(technique: str):
+    if technique == "kmeans" and "df" in session_data:
+        result = kmeans.run(session_data["df"])
+        return result
+    return {"error": "Technique not supported or data not uploaded"}
+"""
+
+with open("/mnt/data/BumpDataInterface/BumpDataInterface/backend/api/run_model.py", "w") as f:
+    f.write(run_model_code)
+
+"/mnt/data/BumpDataInterface/BumpDataInterface/backend is now fully wired."

@@ -1,0 +1,129 @@
+Final run_model.py (Drop in /backend/api/run_model.py)
+This includes all 20+ techniques, mapped to their run() functions.
+
+python
+Copy
+Edit
+from fastapi import APIRouter
+from ..upload import session_data
+from ..logic import (
+    kmeans,
+    isolation_forest,
+    linear_regression,
+    random_forest_classifier,
+    dbscan,
+    ridge_regression,
+    lasso_regression,
+    svc,
+    svr,
+    hierarchical_clustering,
+    gaussian_nb,
+    gradient_boosting_classifier,
+    gradient_boosting_regressor,
+    prophet_forecasting,
+    kernel_pca
+)
+
+router = APIRouter()
+
+@router.post("/{technique}")
+def run_selected_technique(technique: str):
+    df = session_data.get("df")
+    if not df:
+        return {"error": "No uploaded data"}
+
+    logic_map = {
+        "kmeans": kmeans.run,
+        "isolation_forest": isolation_forest.run,
+        "linear_regression": linear_regression.run,
+        "random_forest_classifier": random_forest_classifier.run,
+        "dbscan": dbscan.run,
+        "ridge_regression": ridge_regression.run,
+        "lasso_regression": lasso_regression.run,
+        "svc": svc.run,
+        "svr": svr.run,
+        "hierarchical_clustering": hierarchical_clustering.run,
+        "gaussian_nb": gaussian_nb.run,
+        "gradient_boosting_classifier": gradient_boosting_classifier.run,
+        "gradient_boosting_regressor": gradient_boosting_regressor.run,
+        "prophet_forecasting": prophet_forecasting.run,
+        "kernel_pca": kernel_pca.run
+    }
+
+    if technique not in logic_map:
+        return {"error": f"Technique '{technique}' not supported."}
+
+    return logic_map[technique](df)
+🛠️ Minimal replit.nix (Drop in root)
+nix
+Copy
+Edit
+{ pkgs }: {
+  deps = [
+    pkgs.python311
+    pkgs.nodejs
+    pkgs.poetry
+    pkgs.git
+  ];
+
+  env = {
+    PYTHONIOENCODING = "utf-8";
+  };
+
+  # Additional setup
+  setup = ''
+    python3 -m pip install --upgrade pip
+    pip install -r requirements.txt
+  '';
+}
+📄 .replit File
+ini
+Copy
+Edit
+language = "python3"
+entrypoint = "backend/main.py"
+run = "uvicorn backend.main:app --host=0.0.0.0 --port=8000 --reload"
+📦 requirements.txt (Drop in root if not yet created)
+txt
+Copy
+Edit
+fastapi
+uvicorn
+pandas
+scikit-learn
+prophet
+🧾 README.md (Optional but highly recommended)
+md
+Copy
+Edit
+# BumpData 🚀
+
+An explainable, constraint-driven modeling platform that helps users explore and run ML techniques based on their dataset structure.
+
+---
+
+## 🧠 What It Does
+
+- Upload data
+- Detect features, missing %, types
+- Show all valid models (based on constraints)
+- Run models and display:
+  - Charts
+  - Stats
+  - Tables
+  - ELI5 explanations
+
+---
+
+## 🛠 Dev Setup
+
+### Replit
+1. Use included `.replit` and `replit.nix` files
+2. App runs at `http://localhost:8000`
+
+### Local
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn backend.main:app --reload

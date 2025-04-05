@@ -1,0 +1,7 @@
+{
+  "kmeans": ["chart", "stats", "table", "text"],
+  "isolation_forest": ["chart", "stats", "table", "text"],
+  "linear_regression": ["chart", "stats", "table", "text"],
+  "random_forest_classifier": ["chart", "stats", "table", "text"],
+  "dbscan": ["chart", "stats", "table", "text"]
+}

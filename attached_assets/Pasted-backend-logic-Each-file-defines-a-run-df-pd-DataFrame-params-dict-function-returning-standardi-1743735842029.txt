@@ -1,0 +1,117 @@
+backend/logic/
+
+Each file defines a run(df: pd.DataFrame, params: dict) function returning standardized output.
+
+📄 isolation_forest.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.ensemble import IsolationForest
+
+def run(df: pd.DataFrame, params: dict = None):
+    model = IsolationForest(contamination=0.1, random_state=42)
+    X = df.select_dtypes(include='number').dropna()
+    model.fit(X)
+    scores = model.decision_function(X)
+    outliers = model.predict(X)
+
+    return {
+        "charts": {
+            "outlier_score_distribution": scores.tolist()
+        },
+        "stats": {
+            "n_outliers": int((outliers == -1).sum()),
+            "n_samples": len(outliers)
+        },
+        "tables": {
+            "outliers": [{"Index": i, "Anomaly": int(label)} for i, label in enumerate(outliers)]
+        },
+        "explanation": "Isolation Forest detects anomalies by randomly partitioning the feature space and isolating outliers quickly."
+    }
+📄 linear_regression.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    model = LinearRegression()
+    model.fit(X, y)
+    predictions = model.predict(X)
+
+    return {
+        "charts": {
+            "predictions_vs_actual": list(zip(predictions.tolist(), y.tolist()))
+        },
+        "stats": {
+            "r2_score": round(r2_score(y, predictions), 4),
+            "mse": round(mean_squared_error(y, predictions), 4)
+        },
+        "tables": {
+            "coefficients": dict(zip(X.columns, model.coef_.tolist()))
+        },
+        "explanation": "Linear Regression models the linear relationship between the target variable and one or more features."
+    }
+📄 random_forest_classifier.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    y = X.iloc[:, 0]
+    X = X.iloc[:, 1:]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+
+    return {
+        "charts": {
+            "feature_importances": dict(zip(X.columns, model.feature_importances_.tolist()))
+        },
+        "stats": {
+            "accuracy": round(accuracy_score(y_test, predictions), 4)
+        },
+        "tables": {
+            "report": classification_report(y_test, predictions, output_dict=True)
+        },
+        "explanation": "Random Forest is an ensemble method that builds multiple decision trees and averages their predictions for better accuracy."
+    }
+📄 dbscan.py
+python
+Copy
+Edit
+import pandas as pd
+from sklearn.cluster import DBSCAN
+
+def run(df: pd.DataFrame, params: dict = None):
+    X = df.select_dtypes(include='number').dropna()
+    model = DBSCAN(eps=0.5, min_samples=5)
+    labels = model.fit_predict(X)
+
+    return {
+        "charts": {
+            "clusters_detected": list(labels)
+        },
+        "stats": {
+            "n_clusters": len(set(labels)) - (1 if -1 in labels else 0),
+            "n_noise": list(labels).count(-1)
+        },
+        "tables": {
+            "cluster_assignments": [{"Index": i, "Cluster": int(label)} for i, label in enumerate(labels)]
+        },
+        "explanation": "DBSCAN is a density-based clustering algorithm that identifies clusters and noise based on spatial proximity."
+    }

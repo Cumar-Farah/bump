@@ -1,0 +1,144 @@
+"use client"
+
+import { useState } from "react"
+import { BarChart3, FileText, Table2 } from "lucide-react"
+
+type OutputType = "chart" | "table" | "text"
+
+export default function AnalysisDashboard() {
+  const [activeOutput, setActiveOutput] = useState<OutputType>("chart")
+
+  // Filter techniques by the selected output type
+  const filteredTechniques = techniques.filter((technique) => technique.outputs.includes(activeOutput))
+
+  return (
+    <div className="min-h-screen bg-black text-white p-6 md:p-8">
+      <header className="mb-6">
+        <h1 className="text-xl font-light">Analysis Techniques</h1>
+        <p className="text-xs text-zinc-400 mt-1">portwatch_disruptions_database.csv</p>
+      </header>
+
+      {/* Output Type Toggler Banner */}
+      <div className="flex border-b border-zinc-800 mb-8">
+        <button
+          onClick={() => setActiveOutput("chart")}
+          className={`flex items-center gap-2 px-4 py-3 text-sm ${
+            activeOutput === "chart" ? "border-b border-white text-white" : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <BarChart3 size={16} />
+          Chart
+        </button>
+        <button
+          onClick={() => setActiveOutput("table")}
+          className={`flex items-center gap-2 px-4 py-3 text-sm ${
+            activeOutput === "table" ? "border-b border-white text-white" : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <Table2 size={16} />
+          Table
+        </button>
+        <button
+          onClick={() => setActiveOutput("text")}
+          className={`flex items-center gap-2 px-4 py-3 text-sm ${
+            activeOutput === "text" ? "border-b border-white text-white" : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <FileText size={16} />
+          Text
+        </button>
+      </div>
+
+      {/* Output Type Header */}
+      <div className="mb-6">
+        <h2 className="text-lg font-light flex items-center gap-2">
+          {activeOutput === "chart" && <BarChart3 size={18} />}
+          {activeOutput === "table" && <Table2 size={18} />}
+          {activeOutput === "text" && <FileText size={18} />}
+          {activeOutput.charAt(0).toUpperCase() + activeOutput.slice(1)} Output
+        </h2>
+        <p className="text-xs text-zinc-400 mt-1">{filteredTechniques.length} available techniques</p>
+      </div>
+
+      {/* Techniques Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredTechniques.map((technique) => (
+          <div
+            key={technique.name}
+            className="border border-zinc-800 rounded-md p-4 hover:border-zinc-700 transition-colors"
+          >
+            <h3 className="text-base font-light mb-3">{technique.name}</h3>
+
+            <div className="flex gap-2 mb-4">
+              {technique.tags.map((tag) => (
+                <span key={tag} className="text-xs px-2 py-0.5 bg-zinc-900 rounded-full text-zinc-400">
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 mb-4 text-zinc-400">
+              <span className="text-xs">Also outputs:</span>
+              {technique.outputs.includes("chart") && activeOutput !== "chart" && <BarChart3 size={14} />}
+              {technique.outputs.includes("table") && activeOutput !== "table" && <Table2 size={14} />}
+              {technique.outputs.includes("text") && activeOutput !== "text" && <FileText size={14} />}
+            </div>
+
+            <button className="w-full py-2 mt-2 border border-zinc-800 rounded text-xs hover:bg-zinc-900 transition-colors">
+              Generate
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const techniques = [
+  {
+    name: "KMeans Clustering",
+    tags: ["Clustering"],
+    outputs: ["chart", "table", "text"],
+  },
+  {
+    name: "Isolation Forest",
+    tags: ["Anomaly Detection"],
+    outputs: ["chart", "table", "text"],
+  },
+  {
+    name: "Linear Regression",
+    tags: ["Regression"],
+    outputs: ["chart", "text"],
+  },
+  {
+    name: "Logistic Regression",
+    tags: ["Classification"],
+    outputs: ["table", "text"],
+  },
+  {
+    name: "Random Forest",
+    tags: ["Classification"],
+    outputs: ["chart", "table", "text"],
+  },
+  {
+    name: "Decision Tree",
+    tags: ["Classification"],
+    outputs: ["chart", "text"],
+  },
+  {
+    name: "DBSCAN",
+    tags: ["Clustering"],
+    outputs: ["chart", "table"],
+  },
+  {
+    name: "Auto ARIMA",
+    tags: ["Time Series"],
+    outputs: ["chart", "text"],
+  },
+  {
+    name: "PCA",
+    tags: ["Dimensionality Reduction"],
+    outputs: ["chart", "table"],
+  },
+]
+

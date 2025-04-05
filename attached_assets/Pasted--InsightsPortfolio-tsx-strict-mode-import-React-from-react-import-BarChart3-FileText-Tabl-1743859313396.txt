@@ -1,0 +1,74 @@
+// InsightsPortfolio.tsx (strict mode)
+import React from 'react';
+import { BarChart3, FileText, Table2, Activity } from 'lucide-react';
+import { useUpload } from '@/contexts/upload-context';
+import { useOutputMap } from '@/contexts/outputMapContext';
+import { useToast } from '@/hooks/use-toast';
+
+export type OutputType = 'chart' | 'stats' | 'table' | 'text';
+
+interface TechniqueCardProps {
+  technique: any;
+  onRun: (techniqueCode: string) => void;
+  isLoading: boolean;
+  activeOutputFilter: OutputType;
+}
+
+const TechniqueCard: React.FC<TechniqueCardProps> = ({ technique, onRun, isLoading, activeOutputFilter }) => {
+  const { name, tags, code } = technique;
+
+  return (
+    <div className="border border-border rounded-lg p-4 bg-card text-foreground shadow-sm">
+      <h3 className="text-base font-semibold mb-1">{name}</h3>
+      <div className="text-xs text-muted mb-2">{tags.join(', ')}</div>
+
+      <div className="flex items-center gap-2 text-xs text-muted mb-4">
+        <span>Available outputs:</span>
+        {technique.output_types.includes('chart') && <BarChart3 size={14} />}
+        {technique.output_types.includes('stats') && <Activity size={14} />}
+        {technique.output_types.includes('table') && <Table2 size={14} />}
+        {technique.output_types.includes('text') && <FileText size={14} />}
+      </div>
+
+      <button
+        disabled={isLoading}
+        onClick={() => onRun(code)}
+        className="w-full py-2 mt-2 border border-border rounded text-xs hover:bg-muted/10 transition"
+      >
+        {isLoading ? 'Generating...' : 'Generate Insight'}
+      </button>
+    </div>
+  );
+};
+
+export default function InsightsPortfolio({ activeOutput }: { activeOutput: OutputType }) {
+  const { techniques, runTechnique, runningTechniques, resultsMap } = useUpload();
+  const { toast } = useToast();
+
+  const filtered = techniques.filter((tech) => {
+    const result = resultsMap[tech.code];
+    if (!result) return false;
+
+    const output = result[activeOutput];
+    if (activeOutput === 'chart') return Array.isArray(output) && output.length > 0;
+    if (activeOutput === 'table') return Array.isArray(output) && output.length > 0;
+    if (activeOutput === 'text') return typeof output === 'string' && output.length > 0;
+    if (activeOutput === 'stats') return typeof output === 'object' && Object.keys(output).length > 0;
+
+    return false;
+  });
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filtered.map((tech) => (
+        <TechniqueCard
+          key={tech.code}
+          technique={tech}
+          onRun={runTechnique}
+          isLoading={!!runningTechniques[tech.code]}
+          activeOutputFilter={activeOutput}
+        />
+      ))}
+    </div>
+  );
+}

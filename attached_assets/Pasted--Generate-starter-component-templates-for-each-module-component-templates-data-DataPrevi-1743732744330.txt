@@ -1,0 +1,123 @@
+# Generate starter component templates for each module
+component_templates = {
+    "data/DataPreview.tsx": """import React from 'react';
+
+const DataPreview = ({ data }: { data: any[] }) => {
+  if (!data || data.length === 0) return <div>No data to preview.</div>;
+
+  const columns = Object.keys(data[0]);
+
+  return (
+    <div className="overflow-auto border rounded p-4">
+      <table className="min-w-full text-sm text-left">
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th key={col} className="px-4 py-2 border-b font-semibold">{col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.slice(0, 10).map((row, i) => (
+            <tr key={i}>
+              {columns.map((col) => (
+                <td key={col} className="px-4 py-1 border-b">{row[col]}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default DataPreview;
+""",
+    "insights/InsightsPortfolio.tsx": """import React from 'react';
+
+interface TechniqueCardProps {
+  name: string;
+  tags: string[];
+  onSelect: () => void;
+}
+
+const TechniqueCard: React.FC<TechniqueCardProps> = ({ name, tags, onSelect }) => (
+  <div className="border rounded p-4 shadow-sm hover:shadow-md transition">
+    <h3 className="font-bold text-lg mb-2">{name}</h3>
+    <div className="flex flex-wrap gap-2 mb-2">
+      {tags.map((tag, i) => (
+        <span key={i} className="bg-purple-100 text-purple-800 px-2 py-1 text-xs rounded">{tag}</span>
+      ))}
+    </div>
+    <button onClick={onSelect} className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">
+      Render Insight
+    </button>
+  </div>
+);
+
+const InsightsPortfolio = ({ techniques }: { techniques: any[] }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {techniques.map((tech, i) => (
+        <TechniqueCard
+          key={i}
+          name={tech.name}
+          tags={tech.tags || []}
+          onSelect={() => console.log(`Run ${tech.code}`)}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default InsightsPortfolio;
+""",
+    "results/ResultRenderer.tsx": """import React from 'react';
+
+const ResultRenderer = ({ result }: { result: any }) => {
+  if (!result) return <div>No results to display.</div>;
+
+  return (
+    <div className="space-y-6">
+      {result.charts && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Charts</h2>
+          {/* Insert chart rendering here */}
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.charts, null, 2)}</pre>
+        </div>
+      )}
+      {result.stats && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Statistics</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.stats, null, 2)}</pre>
+        </div>
+      )}
+      {result.tables && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Tables</h2>
+          <pre className="bg-gray-100 p-2 rounded">{JSON.stringify(result.tables, null, 2)}</pre>
+        </div>
+      )}
+      {result.explanation && (
+        <div>
+          <h2 className="text-xl font-bold mb-2">Explanation</h2>
+          <p className="bg-white p-2 border-l-4 border-purple-500 rounded">{result.explanation}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ResultRenderer;
+"""
+}
+
+# Write files
+created_files = []
+for rel_path, content in component_templates.items():
+    full_path = os.path.join(base_path, rel_path)
+    with open(full_path, "w") as f:
+        f.write(content)
+    created_files.append(full_path)
+
+created_files
