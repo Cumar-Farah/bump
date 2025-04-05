@@ -11,6 +11,29 @@ current_dir = Path(__file__).parent
 server_dir = current_dir.parent
 sys.path.append(str(server_dir))
 
+# Import utilities
+try:
+    from server.utils.json_utils import NpEncoder, format_error_response
+    from server.utils.technique_utils import (
+        SUPPORTED_TECHNIQUES, 
+        TECHNIQUE_MODULE_MAP,
+        is_supported_technique,
+        import_technique_module
+    )
+except ImportError:
+    # If we can't find them, add more paths
+    project_root = str(server_dir.parent)
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    # Try again
+    from server.utils.json_utils import NpEncoder, format_error_response
+    from server.utils.technique_utils import (
+        SUPPORTED_TECHNIQUES, 
+        TECHNIQUE_MODULE_MAP,
+        is_supported_technique,
+        import_technique_module
+    )
+    
 # Attempt to import from the server module - this is for direct DB access
 try:
     # First try importing directly
@@ -27,20 +50,6 @@ except ImportError:
     # Fallback if we can't import the storage
     from server.api.upload import sessionData
     USE_DATABASE = False
-
-class NpEncoder(json.JSONEncoder):
-    """Custom JSON encoder for NumPy types"""
-    def default(self, obj):
-        import numpy as np
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        if isinstance(obj, np.bool_):
-            return bool(obj)
-        return super(NpEncoder, self).default(obj)
 
 def run_technique(technique, data_id, user_id, params=None):
     """Run a specific technique on dataset"""
